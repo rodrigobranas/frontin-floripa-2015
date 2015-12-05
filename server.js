@@ -10,8 +10,13 @@ app.use(bodyParser.urlencoded({
 }));
 
 io.on("connect", function (socket) {
+	var _channel;
 	socket.on("message", function (data) {
-		io.emit("message", data);
+		io.to(_channel).emit("message", data);
+	});
+	socket.on("join", function (channel) {
+		_channel = channel;
+		socket.join(channel);
 	});
 });
 

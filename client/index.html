@@ -10,6 +10,18 @@
 	<script>
 		var socket = io();
 		angular.module("chat", []);
+		angular.module("chat").directive("autoScroll", function () {
+			return {
+				scope: {
+					autoScroll: "="
+				},
+				link: function (scope, element) {
+					scope.$watchCollection("autoScroll", function () {
+						element[0].scrollTop = element[0].scrollHeight;
+					});
+				}
+			};
+		});
 		angular.module("chat").controller("chatCtrl", function ($scope, $http, $interval) {
 			$scope.app = "Chat";
 			$scope.messages = [];
@@ -22,6 +34,7 @@
 
 			$scope.connect = function () {
 				$scope.connected = true;
+				socket.emit("join", $scope.channel);
 			};
 
 			$scope.send = function (message, $event) {
@@ -54,13 +67,14 @@
 		<h2 class="text-center"><span class="fa fa-comments"></span> {{app}}</h2>
 		<div ng-hide="connected">
 			<input class="form-control" type="text" ng-model="nickname" placeholder="Tell me your nickname..."/>
+			<input class="form-control" type="text" ng-model="channel" placeholder="Channel"/>
 			<br/>
 			<div class="text-right">
 				<button class="btn btn-success" ng-click="connect()">Connected</button>
 			</div>
 		</div>
 		<div ng-show="connected">
-			<div class="panel panel-default panel-body messages text-left">
+			<div class="panel panel-default panel-body messages text-left" auto-scroll="messages">
 				<div ng-repeat="message in messages">
 					<b>[{{message.date | date:'dd/MM/yyyy HH:mm'}}] {{message.nickname}}</b> {{message.message}}
 				</div>
