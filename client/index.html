@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html ng-app="chat">
+<head>
+	<meta charset="UTF-8">
+	<title>Chat</title>
+	<link rel="stylesheet" type="text/css" href="bower_components/bootstrap/dist/css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="bower_components/font-awesome/css/font-awesome.css">
+	<script src="bower_components/angular/angular.js"></script>
+	<script src="bower_components/socket.io-client/socket.io.js"></script>
+	<script>
+		var socket = io();
+		angular.module("chat", []);
+		angular.module("chat").controller("chatCtrl", function ($scope, $http, $interval) {
+			$scope.app = "Chat";
+			$scope.messages = [];
+
+			socket.on("message", function (data) {
+				$scope.$apply(function () {
+					$scope.messages.push(data);
+				});
+			});
+
+			$scope.connect = function () {
+				$scope.connected = true;
+			};
+
+			$scope.send = function (message, $event) {
+				if ($event.keyCode !== 13) return;
+				var _message = {date: new Date(), nickname: $scope.nickname, message: message};
+				socket.emit("message", _message);
+				delete $scope.message;
+			};
+		})
+	</script>
+	<style>
+		.main {
+			background-color: #AAA;
+			margin-top: 50px;
+			margin-left: auto;
+			margin-right: auto;
+			width: 600px;
+			padding: 20px;
+		}
+
+		.messages {
+			margin-top: 20px;
+			height: 200px;
+			overflow: auto;
+		}
+	</style>
+</head>
+<body ng-controller="chatCtrl">
+	<div class="main">
+		<h2 class="text-center"><span class="fa fa-comments"></span> {{app}}</h2>
+		<div ng-hide="connected">
+			<input class="form-control" type="text" ng-model="nickname" placeholder="Tell me your nickname..."/>
+			<br/>
+			<div class="text-right">
+				<button class="btn btn-success" ng-click="connect()">Connected</button>
+			</div>
+		</div>
+		<div ng-show="connected">
+			<div class="panel panel-default panel-body messages text-left">
+				<div ng-repeat="message in messages">
+					<b>[{{message.date | date:'dd/MM/yyyy HH:mm'}}] {{message.nickname}}</b> {{message.message}}
+				</div>
+			</div> 
+			<input class="form-control" type="text" ng-model="message" placeholder="Type your message..." ng-keyup="send(message, $event)"/>
+		</div>
+	</div>
+</body>
+</html>
